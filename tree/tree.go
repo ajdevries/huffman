@@ -1,6 +1,9 @@
 package tree
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
 type Node struct {
 	Left   *Node
@@ -8,6 +11,8 @@ type Node struct {
 	Value  string
 	Weight int
 }
+
+type Nodes []*Node
 
 func New(l, r *Node) *Node {
 	w := 0
@@ -38,8 +43,20 @@ func (n *Node) String() string {
 	return s
 }
 
+func (s Nodes) Len() int {
+	return len(s)
+}
+
+func (s Nodes) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s Nodes) Less(i, j int) bool {
+	return s[i].Weight > s[j].Weight
+}
+
 func Huffman(values ...string) *Node {
-	l := []*Node{}
+	l := Nodes{}
 	for _, v := range values {
 		l = append(l, NewLeaf(v, 1))
 	}
@@ -48,6 +65,7 @@ func Huffman(values ...string) *Node {
 		left, l = l[len(l)-1], l[:len(l)-1]
 		right, l = l[len(l)-1], l[:len(l)-1]
 		l = append(l, New(left, right))
+		sort.Sort(l)
 	}
 	return l[0]
 }

@@ -40,13 +40,13 @@ func TestHuffmanThreeValues(t *testing.T) {
 	if tree == nil {
 		t.Fatal("Expecting a tree")
 	}
-	if tree.Left == nil || tree.Left.Left.Value != "A" {
+	if tree.Left.Value != "C" {
 		t.Fatal("Expecting a Left, Left leaf with value \"A\"")
 	}
-	if tree.Left.Right.Value != "B" {
+	if tree.Right.Left.Value != "A" {
 		t.Fatal("Expecting a Left, Left leaf with value \"B\"")
 	}
-	if tree.Right == nil || tree.Right.Value != "C" {
+	if tree.Right.Right.Value != "B" {
 		t.Fatal("Expecting a Right leaf with value \"C\"")
 	}
 }
@@ -56,19 +56,7 @@ func TestHuffmanFourValues(t *testing.T) {
 	if tree == nil {
 		t.Fatal("Expecting a tree")
 	}
-	if tree.Left.Left.Left.Value != "A" {
-		t.Fatal("Expecting a Left, Left leaf with value \"A\"")
-	}
-	if tree.Left.Left.Right.Value != "B" {
-		t.Fatal("Expecting a Left, Left leaf with value \"B\"")
-	}
-	if tree.Left.Right.Value != "C" {
-		t.Fatal("Expecting a Right leaf with value \"C\"")
-	}
-	if tree.Right.Value != "D" {
-		t.Fatal("Expecting a Right leaf with value \"D\"")
-	}
-	if tree.String() != "L:L:L:AR:BR:CR:D" {
-		t.Fatal("Expecting tree value to be \"L:L:L:AR:BR:CR:D\"")
+	if tree.String() != "L:L:CR:DR:L:AR:B" {
+		t.Fatal("Expecting tree value to be \"L:L:CR:DR:L:AR:B\"")
 	}
 }
