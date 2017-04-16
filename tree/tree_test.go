@@ -60,3 +60,59 @@ func TestHuffmanFourValues(t *testing.T) {
 		t.Fatal("Expecting tree value to be \"L:L:CR:DR:L:AR:B\"")
 	}
 }
+
+func TestFind(t *testing.T) {
+	tree := Huffman("A", "B")
+	f, _ := tree.Find("B")
+	if f != "1" {
+		t.Fatalf("Expecting 1 but got %s", f)
+	}
+	f, _ = tree.Find("A")
+	if f != "0" {
+		t.Fatalf("Expecting 0 but got %s", f)
+	}
+	_, err := tree.Find("Z")
+	if err == nil {
+		t.Fatal("Expecting an error")
+	}
+}
+
+func TestFindSixValues(t *testing.T) {
+	tree := Huffman("A", "B", "C", "D", "E")
+	f, _ := tree.Find("B")
+	if f != "000" {
+		t.Fatalf("Expecting 1 but got %s", f)
+	}
+	f, _ = tree.Find("E")
+	if f != "11" {
+		t.Fatalf("Expecting 0 but got %s", f)
+	}
+}
+
+func TestDecode(t *testing.T) {
+	tree := Huffman("A", "B")
+	v, _ := tree.Decode("0")
+	if v != "A" {
+		t.Fatalf("Expecting to decode 0 to value 'A' but got %s", v)
+	}
+	v, _ = tree.Decode("1")
+	if v != "B" {
+		t.Fatalf("Expecting to decode 1 to value 'B' but got %s", v)
+	}
+	v, _ = tree.Decode("110")
+	if v != "BBA" {
+		t.Fatalf("Expecting to decode 1 to value 'B' but got %s", v)
+	}
+}
+
+func TestDecodeSixValues(t *testing.T) {
+	tree := Huffman("A", "B", "C", "D", "E")
+	_, err := tree.Decode("0")
+	if err == nil {
+		t.Fatal("Expecting an error")
+	}
+	v, _ := tree.Decode("110")
+	if v != "E" {
+		t.Fatalf("Expecting to decode 110 to value 'E' but got %s", v)
+	}
+}

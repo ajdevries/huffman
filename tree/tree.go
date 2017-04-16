@@ -1,8 +1,14 @@
 package tree
 
 import (
+	"errors"
 	"fmt"
 	"sort"
+)
+
+const (
+	Left  = "1"
+	Right = "0"
 )
 
 type Node struct {
@@ -14,6 +20,7 @@ type Node struct {
 
 type Nodes []*Node
 
+// New node, with optional to subnodes (left and right)
 func New(l, r *Node) *Node {
 	w := 0
 	if l != nil {
@@ -25,10 +32,12 @@ func New(l, r *Node) *Node {
 	return &Node{Left: l, Right: r, Weight: w}
 }
 
+// NewLeaf build a new leaf with the given value and weight.
 func NewLeaf(v string, w int) *Node {
 	return &Node{Value: v, Weight: w}
 }
 
+// String string representation of the tree (recursive)
 func (n *Node) String() string {
 	s := ""
 	if n.Left != nil {
@@ -43,6 +52,59 @@ func (n *Node) String() string {
 	return s
 }
 
+// Find value in tree based on huffman encoding, returning a binary value
+// as a string (for readability). When going left '1' is used, right '0'
+func (n *Node) Find(v string) (string, error) {
+	return n.find(v, "")
+}
+
+// Decode a binary code (represented as a string) to a value based on
+// the given nodes in the three.
+func (n *Node) Decode(b string) (r string, err error) {
+	var v string
+	for len(b) > 0 {
+		v, b, err = n.decode(b)
+		r += v
+	}
+	return
+}
+
+func (n *Node) decode(b string) (string, string, error) {
+	if n.IsLeaf() {
+		return n.Value, b, nil
+	}
+	if len(b) > 0 {
+		if string(b[0]) == Left {
+			return n.Left.decode(string(b[1:]))
+		}
+		if string(b[0]) == Right {
+			return n.Right.decode(string(b[1:]))
+		}
+	}
+	return "", "", errors.New("Broken encoded value")
+}
+
+// IsLeaf is this node a leaf (no left or right nodes attached)
+func (n *Node) IsLeaf() bool {
+	return n.Left == nil && n.Right == nil
+}
+
+func (n *Node) find(v, path string) (r string, err error) {
+	if n.Value == v {
+		return path, nil
+	}
+	if n.IsLeaf() {
+		return "", fmt.Errorf("Value %s not found in tree", v)
+	}
+	if n.Left != nil {
+		r, err = n.Left.find(v, path+Left)
+	}
+	if err != nil && n.Right != nil {
+		r, err = n.Right.find(v, path+Right)
+	}
+	return r, err
+}
+
 func (s Nodes) Len() int {
 	return len(s)
 }
@@ -55,6 +117,7 @@ func (s Nodes) Less(i, j int) bool {
 	return s[i].Weight > s[j].Weight
 }
 
+// Huffman building an huffman tree without weights based on separate values
 func Huffman(values ...string) *Node {
 	l := Nodes{}
 	for _, v := range values {
@@ -62,10 +125,10 @@ func Huffman(values ...string) *Node {
 	}
 	var left, right *Node
 	for len(l) > 1 {
+		sort.Sort(l)
 		left, l = l[len(l)-1], l[:len(l)-1]
 		right, l = l[len(l)-1], l[:len(l)-1]
 		l = append(l, New(left, right))
-		sort.Sort(l)
 	}
 	return l[0]
 }
