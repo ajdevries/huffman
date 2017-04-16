@@ -69,6 +69,20 @@ func (n *Node) Decode(b string) (r string, err error) {
 	return
 }
 
+// Encode a value based on the given tree, returning a binary value
+// represented as a string
+func (n *Node) Encode(v string) (b string, err error) {
+	var r string
+	for _, val := range []byte(v) {
+		r, err = n.Find(string(val))
+		if err != nil {
+			return
+		}
+		b += r
+	}
+	return
+}
+
 func (n *Node) decode(b string) (string, string, error) {
 	if n.IsLeaf() {
 		return n.Value, b, nil
@@ -114,15 +128,15 @@ func (s Nodes) Swap(i, j int) {
 }
 
 func (s Nodes) Less(i, j int) bool {
+	if s[i].Weight == s[j].Weight {
+		return s[i].Value < s[j].Value
+	}
 	return s[i].Weight > s[j].Weight
 }
 
-// Huffman building an huffman tree without weights based on separate values
-func Huffman(values ...string) *Node {
-	l := Nodes{}
-	for _, v := range values {
-		l = append(l, NewLeaf(v, 1))
-	}
+// Huffman building an huffman tree based on chars from a string
+func Huffman(value string) *Node {
+	l := weightedNodes(value)
 	var left, right *Node
 	for len(l) > 1 {
 		sort.Sort(l)
@@ -131,4 +145,21 @@ func Huffman(values ...string) *Node {
 		l = append(l, New(left, right))
 	}
 	return l[0]
+}
+
+func weightedNodes(value string) Nodes {
+	l := Nodes{}
+	w := map[string]int{}
+	for _, v := range []byte(value) {
+		val := string(v)
+		if f, ok := w[val]; ok {
+			w[val] = f + 1
+		} else {
+			w[val] = 1
+		}
+	}
+	for k, v := range w {
+		l = append(l, NewLeaf(k, v))
+	}
+	return l
 }

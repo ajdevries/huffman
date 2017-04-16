@@ -23,46 +23,46 @@ func TestNewLeaf(t *testing.T) {
 }
 
 func TestHuffmanTwoValues(t *testing.T) {
-	tree := Huffman("B", "A")
+	tree := Huffman("BA")
 	if tree == nil {
 		t.Fatal("Expecting a tree")
 	}
-	if tree.Left == nil || tree.Left.Value != "A" {
-		t.Fatal("Expecting a Left leaf with value \"A\"")
+	if tree.Left == nil || tree.Left.Value != "B" {
+		t.Fatal("Expecting a Left leaf with value \"B\"")
 	}
-	if tree.Right == nil || tree.Right.Value != "B" {
-		t.Fatal("Expecting a Right leaf with value \"B\"")
+	if tree.Right == nil || tree.Right.Value != "A" {
+		t.Fatal("Expecting a Right leaf with value \"A\"")
 	}
 }
 
 func TestHuffmanThreeValues(t *testing.T) {
-	tree := Huffman("C", "B", "A")
+	tree := Huffman("CBA")
 	if tree == nil {
 		t.Fatal("Expecting a tree")
 	}
-	if tree.Left.Value != "C" {
+	if tree.Left.Value != "A" {
 		t.Fatal("Expecting a Left, Left leaf with value \"A\"")
 	}
-	if tree.Right.Left.Value != "A" {
-		t.Fatal("Expecting a Left, Left leaf with value \"B\"")
+	if tree.Right.Left.Value != "C" {
+		t.Fatal("Expecting a Left, Left leaf with value \"C\"")
 	}
 	if tree.Right.Right.Value != "B" {
-		t.Fatal("Expecting a Right leaf with value \"C\"")
+		t.Fatal("Expecting a Right leaf with value \"B\"")
 	}
 }
 
 func TestHuffmanFourValues(t *testing.T) {
-	tree := Huffman("D", "C", "B", "A")
+	tree := Huffman("DCBA")
 	if tree == nil {
 		t.Fatal("Expecting a tree")
 	}
-	if tree.String() != "L:L:CR:DR:L:AR:B" {
-		t.Fatal("Expecting tree value to be \"L:L:CR:DR:L:AR:B\"")
+	if tree.String() != "L:L:BR:AR:L:DR:C" {
+		t.Fatal("Expecting tree value to be \"L:L:BR:AR:L:DR:C\"")
 	}
 }
 
 func TestFind(t *testing.T) {
-	tree := Huffman("A", "B")
+	tree := Huffman("AB")
 	f, _ := tree.Find("B")
 	if f != "1" {
 		t.Fatalf("Expecting 1 but got %s", f)
@@ -78,7 +78,7 @@ func TestFind(t *testing.T) {
 }
 
 func TestFindSixValues(t *testing.T) {
-	tree := Huffman("A", "B", "C", "D", "E")
+	tree := Huffman("ABCDE")
 	f, _ := tree.Find("B")
 	if f != "000" {
 		t.Fatalf("Expecting 1 but got %s", f)
@@ -90,7 +90,7 @@ func TestFindSixValues(t *testing.T) {
 }
 
 func TestDecode(t *testing.T) {
-	tree := Huffman("A", "B")
+	tree := Huffman("AB")
 	v, _ := tree.Decode("0")
 	if v != "A" {
 		t.Fatalf("Expecting to decode 0 to value 'A' but got %s", v)
@@ -106,7 +106,7 @@ func TestDecode(t *testing.T) {
 }
 
 func TestDecodeSixValues(t *testing.T) {
-	tree := Huffman("A", "B", "C", "D", "E")
+	tree := Huffman("ABCDE")
 	_, err := tree.Decode("0")
 	if err == nil {
 		t.Fatal("Expecting an error")
@@ -114,5 +114,25 @@ func TestDecodeSixValues(t *testing.T) {
 	v, _ := tree.Decode("110")
 	if v != "E" {
 		t.Fatalf("Expecting to decode 110 to value 'E' but got %s", v)
+	}
+}
+
+func TestHuffmanDoubleValues(t *testing.T) {
+	tree := Huffman("ABB")
+	v, _ := tree.Decode("110")
+	if v != "AAB" {
+		t.Fatalf("Expecting to decode 110 to value 'ABB' but got %s", v)
+	}
+}
+
+func TestEncode(t *testing.T) {
+	tree := Huffman("ABB")
+	v, _ := tree.Encode("ABB")
+	if v != "100" {
+		t.Fatalf("Expecting '100' but got %s", v)
+	}
+	_, err := tree.Encode("C")
+	if err == nil {
+		t.Fatal("Expecting an error")
 	}
 }
