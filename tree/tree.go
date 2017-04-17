@@ -152,12 +152,16 @@ func Huffman(value string, n Next) *Node {
 	l := weightedNodes(value, n)
 	var left, right *Node
 	for len(l) > 1 {
-		sort.Sort(l)
 		left, l = l[len(l)-1], l[:len(l)-1]
 		right, l = l[len(l)-1], l[:len(l)-1]
-		l = append(l, New(n(), left, right))
+		l.Add(New(n(), left, right))
 	}
 	return l[0]
+}
+
+func (l *Nodes) Add(n *Node) {
+	*l = append(*l, n)
+	sort.Sort(*l)
 }
 
 func weightedNodes(value string, n Next) Nodes {
@@ -172,7 +176,7 @@ func weightedNodes(value string, n Next) Nodes {
 		}
 	}
 	for k, v := range w {
-		l = append(l, NewLeaf(n(), k, v))
+		l.Add(NewLeaf(n(), k, v))
 	}
 	return l
 }
