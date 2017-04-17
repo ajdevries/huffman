@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strconv"
 )
 
 const (
@@ -11,7 +12,10 @@ const (
 	Right = "0"
 )
 
+type Next func() string
+
 type Node struct {
+	ID     string
 	Left   *Node
 	Right  *Node
 	Value  string
@@ -20,8 +24,17 @@ type Node struct {
 
 type Nodes []*Node
 
+type ID struct {
+	id int
+}
+
+func (id *ID) Next() string {
+	id.id += 1
+	return strconv.Itoa(id.id)
+}
+
 // New node, with optional to subnodes (left and right)
-func New(l, r *Node) *Node {
+func New(id string, l, r *Node) *Node {
 	w := 0
 	if l != nil {
 		w += l.Weight
@@ -29,12 +42,12 @@ func New(l, r *Node) *Node {
 	if r != nil {
 		w += r.Weight
 	}
-	return &Node{Left: l, Right: r, Weight: w}
+	return &Node{ID: id, Left: l, Right: r, Weight: w}
 }
 
 // NewLeaf build a new leaf with the given value and weight.
-func NewLeaf(v string, w int) *Node {
-	return &Node{Value: v, Weight: w}
+func NewLeaf(id, v string, w int) *Node {
+	return &Node{ID: id, Value: v, Weight: w}
 }
 
 // String string representation of the tree (recursive)
@@ -135,19 +148,19 @@ func (s Nodes) Less(i, j int) bool {
 }
 
 // Huffman building an huffman tree based on chars from a string
-func Huffman(value string) *Node {
-	l := weightedNodes(value)
+func Huffman(value string, n Next) *Node {
+	l := weightedNodes(value, n)
 	var left, right *Node
 	for len(l) > 1 {
 		sort.Sort(l)
 		left, l = l[len(l)-1], l[:len(l)-1]
 		right, l = l[len(l)-1], l[:len(l)-1]
-		l = append(l, New(left, right))
+		l = append(l, New(n(), left, right))
 	}
 	return l[0]
 }
 
-func weightedNodes(value string) Nodes {
+func weightedNodes(value string, n Next) Nodes {
 	l := Nodes{}
 	w := map[string]int{}
 	for _, v := range []byte(value) {
@@ -159,7 +172,7 @@ func weightedNodes(value string) Nodes {
 		}
 	}
 	for k, v := range w {
-		l = append(l, NewLeaf(k, v))
+		l = append(l, NewLeaf(n(), k, v))
 	}
 	return l
 }
