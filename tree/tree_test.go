@@ -1,6 +1,8 @@
 package tree
 
-import "testing"
+import (
+	"testing"
+)
 
 var n = (&ID{}).Next
 
@@ -146,5 +148,40 @@ func TestNext(t *testing.T) {
 	}
 	if id.Next() != "2" {
 		t.Fatal("Expecting 2")
+	}
+}
+
+func TestFindById(t *testing.T) {
+	n = (&ID{}).Next
+	tree := Huffman("ABB", n)
+	f := func(id string) func(*Node) bool {
+		return func(n *Node) bool {
+			return n.ID == id
+		}
+	}
+
+	n := tree.FindNode(f("1"))
+	if n == nil {
+		t.Fatal("Expecting a node")
+	}
+	n = tree.FindNode(f("2"))
+	if n == nil {
+		t.Fatal("Expecting a node")
+	}
+	n = tree.FindNode(f("3"))
+	if n == nil {
+		t.Fatal("Expecting a node")
+	}
+}
+
+func TestToJSON(t *testing.T) {
+	n := New("1", NewLeaf("2", "A", 0), New("3", nil, nil))
+	j := string(n.ToJSON())
+	if j != "{\"ID\":\"1\",\"Left\":\"2\",\"Right\":\"3\"}" {
+		t.Fatalf("Expecting something else got %s", j)
+	}
+	j = string(n.Left.ToJSON())
+	if j != "{\"ID\":\"2\",\"Value\":\"A\"}" {
+		t.Fatalf("Expecting something else got %s", j)
 	}
 }

@@ -1,6 +1,7 @@
 package tree
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
@@ -16,6 +17,9 @@ const (
 
 // Next function returns a (next) identifier when adding a Node to the tree
 type Next func() string
+
+// Find function to validate whether the given node meets the criteria for the find method
+type Find func(n *Node) bool
 
 // Node structure represents a Node in a tree
 type Node struct {
@@ -78,6 +82,22 @@ func (n *Node) Find(v string) (string, error) {
 	return n.find(v, "")
 }
 
+func (n *Node) find(v, path string) (r string, err error) {
+	if n.Value == v {
+		return path, nil
+	}
+	if n.IsLeaf() {
+		return "", fmt.Errorf("Value %s not found in tree", v)
+	}
+	if n.Left != nil {
+		r, err = n.Left.find(v, path+Left)
+	}
+	if err != nil && n.Right != nil {
+		r, err = n.Right.find(v, path+Right)
+	}
+	return r, err
+}
+
 // Decode a binary code (represented as a string) to a value based on
 // the given nodes in the three.
 func (n *Node) Decode(b string) (r string, err error) {
@@ -123,20 +143,41 @@ func (n *Node) IsLeaf() bool {
 	return n.Left == nil && n.Right == nil
 }
 
-func (n *Node) find(v, path string) (r string, err error) {
-	if n.Value == v {
-		return path, nil
-	}
-	if n.IsLeaf() {
-		return "", fmt.Errorf("Value %s not found in tree", v)
+// FindNode search recursive the entire three for a node that matches the
+// given Find implementation. Otherwise nil is returned.
+func (n *Node) FindNode(f Find) (r *Node) {
+	if f(n) {
+		return n
 	}
 	if n.Left != nil {
-		r, err = n.Left.find(v, path+Left)
+		r = n.Left.FindNode(f)
 	}
-	if err != nil && n.Right != nil {
-		r, err = n.Right.find(v, path+Right)
+	if r == nil && n.Right != nil {
+		r = n.Right.FindNode(f)
 	}
-	return r, err
+	return
+}
+
+// MarshalJSON custom marshalling for JSON, only add ID, left Node ID and right
+// Node ID and Value
+func (n *Node) MarshalJSON() ([]byte, error) {
+	m := map[string]string{"ID": n.ID}
+	if n.Left != nil {
+		m["Left"] = n.Left.ID
+	}
+	if n.Right != nil {
+		m["Right"] = n.Right.ID
+	}
+	if n.Value != "" {
+		m["Value"] = n.Value
+	}
+	return json.Marshal(m)
+}
+
+// ToJSON returns a JSON representation of a Node, using a custom marshal method.
+func (n *Node) ToJSON() []byte {
+	j, _ := json.Marshal(n)
+	return j
 }
 
 func (s Nodes) Len() int {
