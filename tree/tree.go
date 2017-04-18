@@ -8,12 +8,16 @@ import (
 )
 
 const (
-	Left  = "1"
+	// Left going left in the Huffman tree
+	Left = "1"
+	// Right going right, add a 0 in the Huffman tree
 	Right = "0"
 )
 
+// Next function returns a (next) identifier when adding a Node to the tree
 type Next func() string
 
+// Node structure represents a Node in a tree
 type Node struct {
 	ID     string
 	Left   *Node
@@ -22,14 +26,17 @@ type Node struct {
 	Weight int
 }
 
+// Nodes slice of Node objects used for sorting them on the Weight property
 type Nodes []*Node
 
+// ID struct Next implementation
 type ID struct {
 	id int
 }
 
+// Next returning the next identifier starting with 1
 func (id *ID) Next() string {
-	id.id += 1
+	id.id++
 	return strconv.Itoa(id.id)
 }
 
@@ -159,9 +166,10 @@ func Huffman(value string, n Next) *Node {
 	return l[0]
 }
 
-func (l *Nodes) Add(n *Node) {
-	*l = append(*l, n)
-	sort.Sort(*l)
+// Add append given Node to slice and sort it
+func (s *Nodes) Add(n *Node) {
+	*s = append(*s, n)
+	sort.Sort(*s)
 }
 
 func weightedNodes(value string, n Next) Nodes {
