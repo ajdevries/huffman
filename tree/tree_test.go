@@ -129,6 +129,16 @@ func TestHuffmanDoubleValues(t *testing.T) {
 	}
 }
 
+func TestHuffmanDecodeEncode(t *testing.T) {
+	code := "Thanks for all the fish"
+	tree := Huffman(code, n)
+	c, _ := tree.Encode(code)
+	v, _ := tree.Decode(c)
+	if v != code {
+		t.Fatalf("Encode and decode to be the same value but got %s", v)
+	}
+}
+
 func TestEncode(t *testing.T) {
 	tree := Huffman("ABB", n)
 	v, _ := tree.Encode("ABB")
