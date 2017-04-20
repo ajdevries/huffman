@@ -1,0 +1,85 @@
+Concurrency Patterns in Go
+
+Alten Playground
+9 May 2017
+
+
+Albert-Jan de Vries
+Independent Software Developer
+
+* Who
+Albert-Jan de Vries - Independent Software Developer
+
+.image images/companies.png _ 700
+
+  Java, Go, Groovy, Swift, Python, Ruby
+
+* Why
+
+Different perspective on concurrency, using build in language features
+
+* What
+
+0. What is concurrency
+1. Go routines
+2. Channels
+
+* What is concurrency?
+
+Concurrency is the composition of independently executing computations.
+
+Concurrency is a way to structure software, particularly as a way to write clean code that interacts well with the real world.
+
+It is not parallelism.
+
+- Rob (Commander) Pike
+
+* Concurrency is not parallelism
+
+Concurrency is not parallelism, although it enables parallelism.
+
+If you have only one processor, your program can still be concurrent but it cannot be parallel.
+
+On the other hand, a well-written concurrent program might run efficiently in parallel on a multiprocessor. That property could be important...
+
+- Rob Pike
+
+* Go routines
+.play code/boring.go /START/,/STOP.*/
+
+* Running it concurrent
+
+Using a go routine
+
+.play code/waitgoboring.go /func.main/,/^}/
+
+* Goroutines
+
+What is a goroutine? It's an independently executing function, launched by a go statement.
+
+It has its own call stack, which grows and shrinks as required.
+
+It's very cheap. It's practical to have thousands, even hundreds of thousands of goroutines.
+
+It's not a thread.
+
+There might be only one thread in a program with thousands of goroutines.
+
+Instead, goroutines are multiplexed dynamically onto threads as needed to keep all the goroutines running.
+
+But if you think of it as a very cheap thread, you won't be far off.
+
+* Channels
+
+A channel in Go provides a connection between two goroutines, allowing them to communicate.
+
+.code code/helpers.go /START1/,/STOP1/
+.code code/helpers.go /START2/,/STOP2/
+.code code/helpers.go /START3/,/STOP3/
+
+* Using channels
+
+A channel connects the main and boring goroutines so they can communicate.
+
+.play code/changoboring.go /START1/,/STOP1/
+.code code/changoboring.go /START2/,/STOP2/
