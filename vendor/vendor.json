@@ -1,0 +1,13 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "u3ngybSZQQOP2O2aVPQtbjbt8Ao=",
+			"path": "github.com/ajdevries/huffman",
+			"revision": "946c1a0b72c17e7df2adc846346042bef2836328",
+			"revisionTime": "2017-04-20T14:50:03Z"
+		}
+	],
+	"rootPath": "github.com/ajdevries/huffman"
+}
