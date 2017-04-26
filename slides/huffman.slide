@@ -5,18 +5,11 @@ Alten Playground
 
 
 Albert-Jan de Vries
-Independent Software Developer
-
-* Who
-Albert-Jan de Vries - Independent Software Developer
-
-.image images/companies.png _ 700
-
-  Java, Go, Groovy, Swift, Python, Ruby
+Ammar Abdulamir
 
 * Why
 
-Different perspective on concurrency, using build in language features
+Different perspective on concurrency, using builtin language features
 
 * What
 
@@ -51,7 +44,7 @@ On the other hand, a well-written concurrent program might run efficiently in pa
 
 Using a go routine
 
-.play code/waitgoboring.go /func.main/,/^}/
+.play -edit code/waitgoboring.go /func.main/,/^}/
 
 * Goroutines
 
@@ -83,3 +76,71 @@ A channel connects the main and boring goroutines so they can communicate.
 
 .play code/changoboring.go /START1/,/STOP1/
 .code code/changoboring.go /START2/,/STOP2/
+
+* Channel read/writes are blocking
+
+Write to a channel
+
+.play code/channels_write.go /START/,/STOP.*/
+
+Read from a channel
+
+.play -edit code/channels_read.go /START/,/STOP.*/
+
+* Buffered channels
+
+.play -edit code/channels_buffered.go /START/,/STOP.*/
+
+* Select
+
+The select statement provides another way to handle multiple channels.
+It's like a switch, but each case is a communication:
+- All channels are evaluated.
+- Selection blocks until one communication can proceed, which then does.
+- If multiple can proceed, select chooses pseudo-randomly.
+- A default clause, if present, executes immediately if no channel is ready.
+
+.code code/select.go /START0/,/STOP0/
+
+* Timeout using select
+
+The time.After function returns a channel that blocks for the specified duration.
+After the interval, the channel delivers the current time, once.
+
+.play code/timeout.go /START1/,/STOP1/
+
+* Timeout for whole conversation using select
+
+Create the timer once, outside the loop, to time out the entire conversation.
+(In the previous program, we had a timeout for each message.)
+
+.play code/timeoutall.go /START1/,/STOP1/
+
+* Function passing
+
+* Huffman project
+- Huffman tree
+- Server endpoints
+- Client download
+
+* Install GO
+
+- Download from https://golang.org/dl/
+- Install Atom https://atom.io/ + go-plus
+- Install Gogland https://www.jetbrains.com/go/
+- Visual Studio Code (https://marketplace.visualstudio.com/items?itemName=lukehoban.Go)
+
+* Present Rate Limiter Solution
+
+* Second assignment
+
+- Rate limit based a time frame (i.e. max 20 request in 1 minute)
+
+* Third assignment
+
+- Use third party server for download tree nodes
+- Build a timeout mechanism when third party is not responding (in time)
+
+* Fourth assignment
+
+- Make the client concurrent

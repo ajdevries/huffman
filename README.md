@@ -1,6 +1,14 @@
 # huffman
 > Alten Playground Golang
 
+### Install go
+- Download from https://golang.org/dl/
+
+#### Pick an IDE
+- Install Atom https://atom.io/ + go-plus
+- Install Gogland https://www.jetbrains.com/go/
+- Visual Studio Code (https://marketplace.visualstudio.com/items?itemName=lukehoban.Go)
+
 ### Build server
 
 ```
