@@ -4,8 +4,8 @@ Alten Playground
 9 May 2017
 
 
-Albert-Jan de Vries
 Ammar Abdulamir
+Albert-Jan de Vries
 
 * Why
 
@@ -116,12 +116,20 @@ Create the timer once, outside the loop, to time out the entire conversation.
 
 .play code/timeoutall.go /START1/,/STOP1/
 
-* Function passing
+* HTTP middleware
+
+.code code/middleware.go /START0/,/STOP0/
+
+.code code/middleware.go /START1/,/STOP1/
 
 * Huffman project
-- Huffman tree
-- Server endpoints
-- Client download
+
+.image images/huffman-tree.png
+
+- A = *0*, AA = *00*, AB = *011*, ABC = *01110*
+- Server: returns tree and code
+- Client: download tree and decode code
+  git clone git@github.com:ajdevries/huffman.git
 
 * Install GO
 
@@ -130,17 +138,50 @@ Create the timer once, outside the loop, to time out the entire conversation.
 - Install Gogland https://www.jetbrains.com/go/
 - Visual Studio Code (https://marketplace.visualstudio.com/items?itemName=lukehoban.Go)
 
-* Present Rate Limiter Solution
+* Show case
+
+*As* *a* server
+*I* *want* to limit the requests to the server
+*so* *that* the server load is kept to a minimum
+
+* First assignment
+
+*As* *a* server
+*I* *want* to limit the concurrent requests to the server
+*so* *that* the server load is kept to a minimum
 
 * Second assignment
 
-- Rate limit based a time frame (i.e. max 20 request in 1 minute)
+*As* *a* server
+*I* *want* to limit the requests from a client in a certain time frame
+*so* *that* the server load is kept to a minimum
+
+*====* *Bonus* *====*
+
+*As* *a* server
+*I* *want* to limit the requests from a *specific* (based on auth token) client in a certain time frame
+*so* *that* the server load is kept to a minimum
 
 * Third assignment
 
-- Use third party server for download tree nodes
-- Build a timeout mechanism when third party is not responding (in time)
+*As* *a* server
+*I* *want* to download the huffman tree and code from a second server
+*so* *that* the tree is reused
+
+*====* *Bonus* *====*
+
+*As* *a* server
+*I* *want* to time out the download from a second server
+*so* *that* the own tree is used
 
 * Fourth assignment
 
-- Make the client concurrent
+*As* *a* client
+*I* *want* to download the tree concurrent
+*so* *that* the download time is improved
+
+* Fifth assignment
+
+*As* *a* client
+*I* *want* to retry a request when it fails
+*so* *that* downloading is resilient
