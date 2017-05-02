@@ -42,7 +42,10 @@ func TestDownload(t *testing.T) {
 	mux := http.NewServeMux()
 	ts := httptest.NewServer(mux)
 	mux.HandleFunc("/tree", node("1", "", ""))
-	n, _ := download(ts.URL+"/tree", "")
+	ch := make(chan *NodeResult)
+	go download(ts.URL+"/tree", "", ch)
+	r := <-ch
+	n := r.node
 	if n == nil {
 		t.Fatal("Expecting a Node")
 	}
@@ -58,7 +61,10 @@ func TestDownloadRecursive(t *testing.T) {
 	mux.HandleFunc("/tree/2", node("2", "4", ""))
 	mux.HandleFunc("/tree/3", node("3", "", ""))
 	mux.HandleFunc("/tree/4", node("4", "", ""))
-	n, _ := download(ts.URL+"/tree", "")
+	ch := make(chan *NodeResult)
+	go download(ts.URL+"/tree", "", ch)
+	r := <-ch
+	n := r.node
 	if n == nil {
 		t.Fatal("Expecting a Node")
 	}

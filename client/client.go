@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/ajdevries/huffman/tree"
 )
@@ -31,32 +32,44 @@ type Node struct {
 	Value string
 }
 
+type NodeResult struct {
+	node *tree.Node
+	err  error
+}
+
 func (n *Node) String() string {
 	b, _ := json.Marshal(n)
 	return string(b)
 }
 
 func main() {
+	start := time.Now()
 	flag.Parse()
-	huffman, err := download(*serverAddr+Huffman, "")
-	if err != nil {
-		log.Fatalf("Couldn't download tree :: %q", err)
+	ch := make(chan *NodeResult)
+
+	go download(*serverAddr+Huffman, "", ch)
+
+	r := <-ch
+
+	if r.err != nil {
+		log.Fatalf("Couldn't download tree :: %q", r.err)
 	}
-	log.Printf("Huffman tree received :: %s\n", huffman)
+	log.Printf("Huffman tree received :: %s\n", r.node)
 	c, err := downloadCode(*serverAddr + Code)
 	if err != nil {
 		log.Fatalf("Couldn't download code :: %q", err)
 	}
 	log.Printf("Code received :: '%s'\n", c)
-	d, err := huffman.Decode(c)
+	d, err := r.node.Decode(c)
 	if err != nil {
 		log.Fatalf("Couldn't decode code :: %q", err)
 	}
 	log.Printf("Code decoded :: '%s'\n", d)
+	log.Printf("Done :: %s\n", time.Now().Sub(start))
 }
 
 // Recursively download all nodes, and build the tree
-func download(url, id string) (*tree.Node, error) {
+func download(url, id string, ch chan *NodeResult) {
 	u := url
 	if id != "" {
 		u += "/" + id
@@ -64,30 +77,44 @@ func download(url, id string) (*tree.Node, error) {
 	log.Printf("Downloading node :: %s\n", u)
 	res, err := http.Get(u)
 	if err != nil {
-		return nil, err
+		ch <- &NodeResult{node: nil, err: err}
 	}
 	defer res.Body.Close()
 	n, err := parse(res.Body)
 	if err != nil {
-		return nil, err
+		ch <- &NodeResult{node: nil, err: err}
 	}
 	log.Printf("Got node :: %s\n", n)
 	node := toTreeNode(n)
+
+	ch1 := make(chan *NodeResult)
+	ch2 := make(chan *NodeResult)
+
 	if n.Left != "" {
-		left, err := download(url, n.Left)
-		if err != nil {
-			return nil, err
-		}
-		node.Left = left
+		go func() {
+			download(url, n.Left, ch1)
+		}()
+	} else {
+		close(ch1)
 	}
+
 	if n.Right != "" {
-		right, err := download(url, n.Right)
-		if err != nil {
-			return nil, err
-		}
-		node.Right = right
+		go func() {
+			download(url, n.Right, ch2)
+		}()
+	} else {
+		close(ch2)
 	}
-	return node, nil
+
+	l := <-ch1
+	if l != nil {
+		node.Left = l.node
+	}
+	r := <-ch2
+	if r != nil {
+		node.Right = r.node
+	}
+	ch <- &NodeResult{node: node, err: nil}
 }
 
 // Parse the node info (as JSON) from the server
