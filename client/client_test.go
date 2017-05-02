@@ -2,13 +2,30 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
+	"time"
 )
 
 const JSON = "{\"ID\":\"%s\",\"Value\":\"A\",\"Left\":\"%s\",\"Right\":\"%s\"}"
+
+func TestMain(m *testing.M) {
+	c := make(chan bool)
+	go func() {
+		os.Exit(m.Run())
+		c <- true
+	}()
+	select {
+	case <-c:
+	case <-time.After(2 * time.Second):
+		log.Fatal("Timeout")
+	}
+
+}
 
 func TestParse(t *testing.T) {
 	n, _ := parse(strings.NewReader(fmt.Sprintf(JSON, "1", "", "")))
@@ -42,7 +59,13 @@ func TestDownload(t *testing.T) {
 	mux := http.NewServeMux()
 	ts := httptest.NewServer(mux)
 	mux.HandleFunc("/tree", node("1", "", ""))
-	n, _ := download(ts.URL+"/tree", "")
+	request := make(chan *Request)
+	response := make(chan *Response)
+
+	go download(ts.URL+"/tree", request, response)
+	request <- &Request{id: ""}
+	res := <-response
+	n := res.node
 	if n == nil {
 		t.Fatal("Expecting a Node")
 	}
@@ -51,25 +74,82 @@ func TestDownload(t *testing.T) {
 	}
 }
 
-func TestDownloadRecursive(t *testing.T) {
+func TestDownloadError(t *testing.T) {
+	mux := http.NewServeMux()
+	ts := httptest.NewServer(mux)
+	mux.HandleFunc("/tree", node("1", "", ""))
+	request := make(chan *Request)
+	response := make(chan *Response)
+
+	go download(ts.URL, request, response)
+	request <- &Request{id: ""}
+	res := <-response
+
+	if res.err == nil {
+		t.Fatal("Expecting a error")
+	}
+
+	go download("http://localhost/tree", request, response)
+	request <- &Request{id: ""}
+	res = <-response
+
+	if res.err == nil {
+		t.Fatal("Expecting a error")
+	}
+
+}
+
+func TestBuildTree(t *testing.T) {
+	mux := http.NewServeMux()
+	ts := httptest.NewServer(mux)
+	mux.HandleFunc("/tree", node("1", "", ""))
+	request := make(chan *Request)
+	response := make(chan *Response)
+
+	go download(ts.URL+"/tree", request, response)
+	tree, _ := buildTree(request, response)
+	if tree == nil || tree.ID != "1" {
+		t.Fatal("Expecting a tree with ID 1")
+	}
+}
+
+func TestBuildTreeRecursive(t *testing.T) {
 	mux := http.NewServeMux()
 	ts := httptest.NewServer(mux)
 	mux.HandleFunc("/tree", node("1", "2", "3"))
 	mux.HandleFunc("/tree/2", node("2", "4", ""))
 	mux.HandleFunc("/tree/3", node("3", "", ""))
 	mux.HandleFunc("/tree/4", node("4", "", ""))
-	n, _ := download(ts.URL+"/tree", "")
-	if n == nil {
-		t.Fatal("Expecting a Node")
+	request := make(chan *Request)
+	response := make(chan *Response)
+
+	go download(ts.URL+"/tree", request, response)
+	tree, _ := buildTree(request, response)
+	if tree == nil || tree.ID != "1" {
+		t.Fatal("Expecting a tree with ID 1")
 	}
-	if n.Left == nil || n.Left.ID != "2" {
-		t.Fatal("Expecting a Left node")
+	if tree.Left == nil || tree.Left.ID != "2" {
+		t.Fatal("Expecting a first left Node with id 2")
 	}
-	if n.Right == nil || n.Right.ID != "3" {
-		t.Fatal("Expecting a Right node")
+	if tree.Left.Left == nil || tree.Left.Left.ID != "4" {
+		t.Fatal("Expecting a first left Node with id 4")
 	}
-	if n.Left.Left == nil || n.Left.Left.ID != "4" {
-		t.Fatal("Expecting a Left.Left node")
+	if tree.String() != "L:L:AAR:AA" {
+		t.Fatalf("Expecting 'L:L:AAR:AA' but got %s", tree)
+	}
+}
+
+func TestBuildTreeError(t *testing.T) {
+	mux := http.NewServeMux()
+	ts := httptest.NewServer(mux)
+	mux.HandleFunc("/tree", node("1", "2", "3"))
+	request := make(chan *Request)
+	response := make(chan *Response)
+
+	go download(ts.URL+"/tree", request, response)
+	_, err := buildTree(request, response)
+	if err == nil {
+		t.Fatal("Expecting an error")
 	}
 }
 
