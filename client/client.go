@@ -20,7 +20,7 @@ const (
 )
 
 var (
-	serverAddr = flag.String("server", "http://localhost:9000", "Address and port from the server")
+	serverAddr = flag.String("server", "http://huffman-ajdevries.oxapp.net", "URL from the server")
 )
 
 // Node representation in the client, used to deserialize the tree.Node from
