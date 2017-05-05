@@ -1,5 +1,7 @@
-# huffman
+# huffman [![CircleCI](https://circleci.com/gh/ajdevries/huffman.svg?style=svg)](https://circleci.com/gh/ajdevries/huffman)
 > Alten Playground Golang
+
+
 
 ### Install go
 - Download from https://golang.org/dl/
