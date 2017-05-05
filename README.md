@@ -4,10 +4,15 @@
 ### Install go
 - Download from https://golang.org/dl/
 
-#### Pick an IDE
-- Install Atom https://atom.io/ + go-plus
-- Install Gogland https://www.jetbrains.com/go/
-- Visual Studio Code (https://marketplace.visualstudio.com/items?itemName=lukehoban.Go)
+#### Pick an editor or IDE
+- Atom (https://atom.io/) + go-plus package
+- Visual Studio Code + vscode-go extension (https://marketplace.visualstudio.com/items?itemName=lukehoban.Go)
+- Gogland (https://www.jetbrains.com/go/)
+
+#### Go resources
+- https://gobyexample.com/
+- https://tour.golang.org/welcome/1
+- Even more resources https://dave.cheney.net/resources-for-new-go-programmers
 
 ### Build server
 
