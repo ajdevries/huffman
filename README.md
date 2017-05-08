@@ -16,14 +16,15 @@
 - https://tour.golang.org/welcome/1
 - Even more resources https://dave.cheney.net/resources-for-new-go-programmers
 
-### Build server
-
+### Get source
 ```
 cd $GOPATH/src
-mkdir -p github.com/ajdevries
-cd github.com/ajdevries
-git clone git@github.com:ajdevries/huffman.git
-cd huffman/server
+go get github.com/ajdevries/huffman
+```
+
+### Build server
+```
+cd $GOPATH/src/github.com/ajdevries/huffman/server
 go build
 ```
 
