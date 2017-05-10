@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/ajdevries/huffman/tree"
 )
@@ -19,7 +20,7 @@ const (
 )
 
 var (
-	serverAddr = flag.String("server", "http://localhost:9000", "Address and port from the server")
+	serverAddr = flag.String("server", "http://huffman-ajdevries.oxapp.net", "URL from the server")
 )
 
 // Node representation in the client, used to deserialize the tree.Node from
@@ -31,63 +32,123 @@ type Node struct {
 	Value string
 }
 
+// Request struct for downloading a tree.Node based on id
+type Request struct {
+	id string
+}
+
+// Response struct when a Node is retrieved from the server.
+type Response struct {
+	id   string
+	node *Node
+	err  error
+}
+
 func (n *Node) String() string {
 	b, _ := json.Marshal(n)
 	return string(b)
 }
 
 func main() {
+	start := time.Now()
 	flag.Parse()
-	huffman, err := download(*serverAddr+Huffman, "")
+	response := make(chan *Response)
+	request := make(chan *Request)
+
+	defer func() {
+		close(request)
+		close(response)
+	}()
+
+	// start a go routing for downloading nodes
+	go download(*serverAddr+Huffman, request, response)
+
+	t, err := buildTree(request, response)
 	if err != nil {
 		log.Fatalf("Couldn't download tree :: %q", err)
 	}
-	log.Printf("Huffman tree received :: %s\n", huffman)
+	log.Printf("Huffman tree received :: %s\n", t)
 	c, err := downloadCode(*serverAddr + Code)
 	if err != nil {
 		log.Fatalf("Couldn't download code :: %q", err)
 	}
 	log.Printf("Code received :: '%s'\n", c)
-	d, err := huffman.Decode(c)
+	d, err := t.Decode(c)
 	if err != nil {
 		log.Fatalf("Couldn't decode code :: %q", err)
 	}
 	log.Printf("Code decoded :: '%s'\n", d)
+	log.Printf("Done :: %s\n", time.Now().Sub(start))
 }
 
-// Recursively download all nodes, and build the tree
-func download(url, id string) (*tree.Node, error) {
-	u := url
-	if id != "" {
-		u += "/" + id
-	}
-	log.Printf("Downloading node :: %s\n", u)
-	res, err := http.Get(u)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-	n, err := parse(res.Body)
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("Got node :: %s\n", n)
-	node := toTreeNode(n)
-	if n.Left != "" {
-		left, err := download(url, n.Left)
-		if err != nil {
-			return nil, err
+// Start a range on the request channel for downloading nodes, send results into
+// response channel.
+func download(url string, request chan *Request, response chan *Response) {
+	for r := range request {
+		u := url
+		if r.id != "" {
+			u += "/" + r.id
 		}
-		node.Left = left
-	}
-	if n.Right != "" {
-		right, err := download(url, n.Right)
+		log.Printf("Downloading node :: %s\n", u)
+		res, err := http.Get(u)
 		if err != nil {
-			return nil, err
+			response <- &Response{err: err}
+			return
 		}
-		node.Right = right
+		defer res.Body.Close()
+		n, err := parse(res.Body)
+		if err != nil {
+			response <- &Response{err: err}
+			return
+		}
+		log.Printf("Got node :: %s\n", n)
+		response <- &Response{id: r.id, node: n}
 	}
-	return node, nil
+}
+
+// buildTree sends id's to the request channel and waits for responses on the
+// response channel.
+func buildTree(request chan *Request, response chan *Response) (*tree.Node, error) {
+	done := make(chan bool)
+	m := make(map[string]*tree.Node)
+	root := &tree.Node{}
+	m[""] = root
+	// start with an empty id, the root node
+	request <- &Request{""}
+	for len(m) > 0 {
+
+		res := <-response
+		if res.err != nil {
+			close(done)
+			return nil, res.err
+		}
+		node := m[res.id]
+		delete(m, res.id)
+		node.Value, node.ID = res.node.Value, res.node.ID
+
+		if res.node.Left != "" {
+			m[res.node.Left] = &tree.Node{}
+			node.Left = m[res.node.Left]
+			go func() {
+				select {
+				case <-done:
+				case request <- &Request{res.node.Left}:
+				}
+			}()
+		}
+		if res.node.Right != "" {
+			m[res.node.Right] = &tree.Node{}
+			node.Right = m[res.node.Right]
+			go func() {
+				select {
+				case <-done:
+				case request <- &Request{res.node.Right}:
+				}
+			}()
+		}
+	}
+	close(done)
+	return root, nil
 }
 
 // Parse the node info (as JSON) from the server
