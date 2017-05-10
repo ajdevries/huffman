@@ -18,12 +18,12 @@
 
 ### Get source
 ```
-cd $GOPATH/src
 go get github.com/ajdevries/huffman
 ```
 
 ### Build server
 ```
+export GOPATH=`go env GOPATH`
 cd $GOPATH/src/github.com/ajdevries/huffman/server
 go build
 ```
@@ -37,6 +37,15 @@ go test ./... -race
 ### Start server
 
 ```
+export GOPATH=`go env GOPATH`
 cd $GOPATH/src/github.com/ajdevries/huffman/server
 go build && ./server
+```
+
+### Start client
+
+```
+export GOPATH=`go env GOPATH`
+cd $GOPATH/src/github.com/ajdevries/huffman/client
+go build && ./client
 ```
